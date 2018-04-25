@@ -40,13 +40,21 @@ public class TileData : MonoBehaviour {
 
     void OnMouseDown()
     {
-        if (multipleSelect)
+        if (GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Contains(gameObject))
         {
-            GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Add(gameObject);
-        } else
+            GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Remove(gameObject);
+        }
+        else
         {
-            GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Clear();
-            GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Add(gameObject);
+            if (multipleSelect)
+            {
+                GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Add(gameObject);
+            }
+            else
+            {
+                GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Clear();
+                GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Add(gameObject);
+            }
         }
     }
 

@@ -17,6 +17,8 @@ public class ToolsController : MonoBehaviour
     public Dropdown spriteType;
     public Image spriteImage;
     public List<GameObject> selectedTiles;
+    public InputField levelName;
+    public Dropdown savedLevels;
 
     private bool tileSelected = false;
 
@@ -25,6 +27,12 @@ public class ToolsController : MonoBehaviour
     void Start()
     {
         createBasicTile(0, 0);
+        savedLevels.options.Clear();
+        foreach (string filename in SaveDataHelper.getNamesOfSaves())
+        {
+            Debug.Log(filename);
+            savedLevels.options.Add(new Dropdown.OptionData(filename));
+        }
     }
 
     // Update is called once per frame
@@ -70,6 +78,8 @@ public class ToolsController : MonoBehaviour
             tileSelected = true;
             spriteImage.sprite = selectedTiles[0].GetComponent<SpriteRenderer>().sprite;
         }
+
+        
     }
 
     public void highlightSelected()
@@ -142,6 +152,30 @@ public class ToolsController : MonoBehaviour
 
     }
 
+    public void generateTilesFromMapData(MapData data)
+    {
+        int maxX = 0;
+        int maxY = 0;
+        foreach (Transform child in GameObject.Find("Tiles").transform)
+        {
+            Destroy(child.gameObject);
+        }
+        foreach (TileSave ts in data.tiles)
+        {
+            if(maxX < ts.position.x)
+            {
+                maxX = ts.position.x;
+            }
+            if (maxY < ts.position.y)
+            {
+                maxY = ts.position.y;
+            }
+            createTileFromTileSave(ts);
+        }
+        Debug.Log("Max values:" + maxX + "," + maxY);
+        updateUIFeilds(maxX, maxY, data.mapName);
+    }
+
     public void createBasicTile(int x, int y)
     {
         GridPosition pos = new GridPosition(x, y, 0);
@@ -149,6 +183,19 @@ public class ToolsController : MonoBehaviour
         go.GetComponent<TileData>().position = pos;
         go.GetComponent<TileData>().safeToStand = true;
         go.name = "x" + x + "y" + y;
+        go.transform.position = IsometricHelper.gridToGamePostion(pos);
+        go.GetComponent<SpriteRenderer>().sortingOrder = IsometricHelper.getTileSortingOrder(pos);
+        go.transform.SetParent(GameObject.Find("Tiles").transform);
+    }
+
+    public void createTileFromTileSave(TileSave ts)
+    {
+        GridPosition pos = new GridPosition(ts.position.x, ts.position.y, ts.position.elevation);
+        GameObject go = (GameObject)Instantiate(Resources.Load("Tile"));
+        go.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(ts.spriteName);
+        go.GetComponent<TileData>().position = pos;
+        go.GetComponent<TileData>().safeToStand = ts.safeToStand;
+        go.name = "x" + pos.x + "y" + pos.y;
         go.transform.position = IsometricHelper.gridToGamePostion(pos);
         go.GetComponent<SpriteRenderer>().sortingOrder = IsometricHelper.getTileSortingOrder(pos);
         go.transform.SetParent(GameObject.Find("Tiles").transform);
@@ -178,5 +225,35 @@ public class ToolsController : MonoBehaviour
             go.GetComponent<TileData>().position.elevation = (int)elevationSlider.value;
         }
         highlightSelected();
+    }
+
+
+    public void saveLevel()
+    {
+        if (!levelName.text.Equals(""))
+        {
+            SaveDataHelper.saveFile(GameObject.Find("Tiles").GetComponent<MapData>(), levelName.text);
+        } else
+        {
+            SaveDataHelper.saveFile(GameObject.Find("Tiles").GetComponent<MapData>(), "New Level");
+        }
+    }
+
+    public void loadLevel()
+    {
+        string filename = savedLevels.options[savedLevels.value].text;
+        MapData md = SaveDataHelper.loadMapData(filename);
+        generateTilesFromMapData(md);
+        
+    }
+
+    public void updateUIFeilds(int maxX, int maxY, string saveName)
+    {
+        selectedTiles.Clear();
+        widthSlider.value = maxX+1;
+        heightSlider.value = maxY+1;
+        currentWidth = maxX+1;
+        currentHeight = maxY+1;
+        levelName.text = saveName;
     }
 }

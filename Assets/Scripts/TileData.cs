@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[ExecuteInEditMode]
 public class TileData : MonoBehaviour {
 
     public GridPosition position;
@@ -12,9 +11,13 @@ public class TileData : MonoBehaviour {
     public int lastElevation;
     public bool multipleSelect = false;
 
+    public TileSave tileSave;
+
     private void Awake()
     {
         sprite = GetComponent<SpriteRenderer>().sprite;
+        tileSave = new TileSave();
+        updateTileSave();
     }
 
     private void Update()
@@ -32,6 +35,7 @@ public class TileData : MonoBehaviour {
             lastElevation = position.elevation;
         }
         GetComponent<SpriteRenderer>().sprite = sprite;
+        updateTileSave();
     }
 
     void OnMouseDown()
@@ -44,5 +48,12 @@ public class TileData : MonoBehaviour {
             GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Clear();
             GameObject.Find("Tools").GetComponent<ToolsController>().selectedTiles.Add(gameObject);
         }
+    }
+
+    public void updateTileSave()
+    {
+        tileSave.position = position;
+        tileSave.spriteName = sprite.name;
+        tileSave.safeToStand = safeToStand;
     }
 }

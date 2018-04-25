@@ -42,7 +42,7 @@ public static class SaveDataHelper {
             List<TileSave> tiles = (List<TileSave>)bf.Deserialize(file);
             Debug.Log(tiles);
             mapData.tiles = tiles;
-            mapData.mapName = saveName.TrimEnd(".level".ToCharArray());
+            mapData.mapName = saveName.Substring(0,saveName.Length-6);
             file.Close();
         }
         return mapData;

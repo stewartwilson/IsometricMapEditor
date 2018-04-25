@@ -27,12 +27,7 @@ public class ToolsController : MonoBehaviour
     void Start()
     {
         createBasicTile(0, 0);
-        savedLevels.options.Clear();
-        foreach (string filename in SaveDataHelper.getNamesOfSaves())
-        {
-            Debug.Log(filename);
-            savedLevels.options.Add(new Dropdown.OptionData(filename));
-        }
+        getSavedLevels();
     }
 
     // Update is called once per frame
@@ -80,6 +75,16 @@ public class ToolsController : MonoBehaviour
         }
 
         
+    }
+
+    public void getSavedLevels()
+    {
+        savedLevels.options.Clear();
+        foreach (string filename in SaveDataHelper.getNamesOfSaves())
+        {
+            Debug.Log(filename);
+            savedLevels.options.Add(new Dropdown.OptionData(filename));
+        }
     }
 
     public void highlightSelected()
@@ -176,6 +181,16 @@ public class ToolsController : MonoBehaviour
         updateUIFeilds(maxX, maxY, data.mapName);
     }
 
+    public void updateUIFeilds(int maxX, int maxY, string saveName)
+    {
+        selectedTiles.Clear();
+        widthSlider.value = maxX + 1;
+        heightSlider.value = maxY + 1;
+        currentWidth = maxX + 1;
+        currentHeight = maxY + 1;
+        levelName.text = saveName;
+    }
+
     public void createBasicTile(int x, int y)
     {
         GridPosition pos = new GridPosition(x, y, 0);
@@ -190,10 +205,12 @@ public class ToolsController : MonoBehaviour
 
     public void createTileFromTileSave(TileSave ts)
     {
+        Debug.Log(ts.spriteName);
         GridPosition pos = new GridPosition(ts.position.x, ts.position.y, ts.position.elevation);
+        Sprite sp = Resources.Load<Sprite>(ts.spriteName);
         GameObject go = (GameObject)Instantiate(Resources.Load("Tile"));
-        go.GetComponent<SpriteRenderer>().sprite = Resources.Load<Sprite>(ts.spriteName);
         go.GetComponent<TileData>().position = pos;
+        go.GetComponent<TileData>().sprite = sp;
         go.GetComponent<TileData>().safeToStand = ts.safeToStand;
         go.name = "x" + pos.x + "y" + pos.y;
         go.transform.position = IsometricHelper.gridToGamePostion(pos);
@@ -237,6 +254,8 @@ public class ToolsController : MonoBehaviour
         {
             SaveDataHelper.saveFile(GameObject.Find("Tiles").GetComponent<MapData>(), "New Level");
         }
+        getSavedLevels();
+
     }
 
     public void loadLevel()
@@ -247,13 +266,5 @@ public class ToolsController : MonoBehaviour
         
     }
 
-    public void updateUIFeilds(int maxX, int maxY, string saveName)
-    {
-        selectedTiles.Clear();
-        widthSlider.value = maxX+1;
-        heightSlider.value = maxY+1;
-        currentWidth = maxX+1;
-        currentHeight = maxY+1;
-        levelName.text = saveName;
-    }
+    
 }
